@@ -36,26 +36,29 @@ if form:
         query = ""
 
         if mouse_type == "All" and status == "All":
-            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID, WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as mname, WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s';""" % (
                 phylo_rank)
         elif mouse_type == "All":
-            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID, WTvsAD as type1, PurevsMix as type2,  TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and WTvsAD = '%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as mname, WTvsAD as type1, PurevsMix as type2,  TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and WTvsAD = '%s';""" % (
                 phylo_rank, status)
         elif status == "All":
-            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as mname,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s';""" % (
                 phylo_rank, mouse_type)
         else:
-            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s' and WTvsAD = '%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as mname,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s' and WTvsAD = '%s';""" % (
             phylo_rank, mouse_type, status)
 
+        Abundance = []
+        MName = []
+        TName = []
 
         df = pd.read_sql(query, connection)
         if vis_type == "Heatmap":
             if labels == "Type":
-                df['Mouse_ID'] = df.apply(lambda row: row.Mouse_ID+row.type1 + row.type2, axis=1)
-                table = df.pivot(index='Taxonomic_rank', columns='Mouse_ID', values='value')
+                df['mname'] = df.apply(lambda row: row.mname+row.type1 + row.type2, axis=1)
+                table = df.pivot(index='tname', columns='mname', values='value')
             else:
-                table = df.pivot(index='Taxonomic_rank', columns='Mouse_ID', values='value')
+                table = df.pivot(index='tname', columns='mname', values='value')
 
             table= table.apply(lambda x: pow(10, x))
             fig, ax = plt.subplots()
@@ -85,10 +88,10 @@ if form:
 
         elif vis_type == "Stack Bar":
             if labels == "Type":
-                df['Mouse_ID'] = df.apply(lambda row: row.Mouse_ID + row.type1 + row.type2, axis=1)
-                pivot_df = df.pivot(index='Mouse_ID', columns='Taxonomic_Rank', values='value')
+                df['mname'] = df.apply(lambda row: row.mname + row.type1 + row.type2, axis=1)
+                pivot_df = df.pivot(index='mname', columns='tname', values='value')
             else:
-                pivot_df = df.pivot(index='Mouse_ID', columns='Taxonomic_Rank', values='value')
+                pivot_df = df.pivot(index='mname', columns='tname', values='value')
             pivot_df = pivot_df.apply(lambda x: pow(10, x))
 
             plot = pivot_df.plot.bar(stacked=True)
