@@ -36,61 +36,59 @@ if form:
         query = ""
 
         if mouse_type == "All" and status == "All":
-            query = """SELECT Abundance.value as value, mouse.name as mname, WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID, WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s';""" % (
                 phylo_rank)
         elif mouse_type == "All":
-            query = """SELECT Abundance.value as value, mouse.name as mname, WTvsAD as type1, PurevsMix as type2,  TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and WTvsAD = '%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID, WTvsAD as type1, PurevsMix as type2,  TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and WTvsAD = '%s';""" % (
                 phylo_rank, status)
         elif status == "All":
-            query = """SELECT Abundance.value as value, mouse.name as mname,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s';""" % (
                 phylo_rank, mouse_type)
         else:
-            query = """SELECT Abundance.value as value, mouse.name as mname,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as tname FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s' and WTvsAD = '%s';""" % (
+            query = """SELECT Abundance.value as value, mouse.name as Mouse_ID,  WTvsAD as type1, PurevsMix as type2, TaxonomicRank.name as Taxonomic_rank FROM Abundance join mouse on Abundance.mid = mouse.mid join TaxonomicRank on Abundance.tid = TaxonomicRank.tid WHERE rank ='%s' and PurevsMix = '%s' and WTvsAD = '%s';""" % (
             phylo_rank, mouse_type, status)
 
-        Abundance = []
-        MName = []
-        TName = []
 
         df = pd.read_sql(query, connection)
         if vis_type == "Heatmap":
             if labels == "Type":
-                df['mname'] = df.apply(lambda row: row.mname[3:]+row.type1 + row.type2, axis=1)
-                table = df.pivot(index='tname', columns='mname', values='value')
+                df['Mouse_ID'] = df.apply(lambda row: row.Mouse_ID+row.type1 + row.type2, axis=1)
+                table = df.pivot(index='Taxonomic_rank', columns='Mouse_ID', values='value')
             else:
-                table = df.pivot(index='tname', columns='mname', values='value')
+                table = df.pivot(index='Taxonomic_rank', columns='Mouse_ID', values='value')
 
+            table= table.apply(lambda x: pow(10, x))
             fig, ax = plt.subplots()
-
-            ax.pcolor(table.values, cmap=plt.get_cmap('jet'),
-                      vmin=df['value'].min(), vmax=df['value'].max())
+            plt.xticks(rotation=90)
+            ax.pcolor(table.values, vmin = pow(10,df['value'].min()), vmax = pow(10,df['value'].max()),cmap = 'bwr')
             ax.set_xticks(np.arange(table.shape[1] + 1) + 0.5, minor=False)
             ax.set_xticklabels(table.columns, minor=False)
             ax.set_yticks(np.arange(table.shape[0] + 1) + 0.5, minor=False)
             ax.set_yticklabels(table.index, minor=False)
             ax.set_xlim(0, table.shape[1])
             ax.set_ylim(0, table.shape[0])
+            plt.colorbar(ax.pcolor(table.values, vmin=pow(10, df['value'].min()), vmax=pow(10, df['value'].max()), cmap='bwr'))
             #plt.show()
             #fig.colorbar(matplotlib.cm.ScalarMappable(cmap=plt.get_cmap('jet')), ax=ax)
             #doesn't work
             figdata = BytesIO()
 
-            fig.savefig(figdata, format='png')
+            fig.savefig(figdata, format='png',bbox_inches='tight')
             image_base64 = base64.b64encode(figdata.getvalue()).decode('utf-8').replace('\n', '')
             figdata.close()
 
             print("Content-type: text/html\n")
-            print('''"data:image/png;base64, %s"''' %(image_base64))
+            print("data:image/png;base64, %s" %(image_base64))
 
 
         # execute the query
 
         elif vis_type == "Stack Bar":
             if labels == "Type":
-                df['mname'] = df.apply(lambda row: row.mname[3:]+row.type1 + row.type2, axis=1)
-                pivot_df = df.pivot(index='mname', columns='tname', values='value')
+                df['Mouse_ID'] = df.apply(lambda row: row.Mouse_ID + row.type1 + row.type2, axis=1)
+                pivot_df = df.pivot(index='Mouse_ID', columns='Taxonomic_Rank', values='value')
             else:
-                pivot_df = df.pivot(index='mname', columns='tname', values='value')
+                pivot_df = df.pivot(index='Mouse_ID', columns='Taxonomic_Rank', values='value')
             pivot_df = pivot_df.apply(lambda x: pow(10, x))
 
             plot = pivot_df.plot.bar(stacked=True)
@@ -103,15 +101,15 @@ if form:
             ax.set_ylim(0, pivot_df.shape[0])
             box = ax.get_position()
             ax.set_position([box.x0, box.y0, box.width * 0.6, box.height])
-            plt.legend(loc=6, bbox_to_anchor=(1, 0.5), fontsize='xx-small')
+            lgd = plt.legend(loc=6, bbox_to_anchor=(1, 0.5), fontsize='xx-small')
             fig = plot.get_figure()
             figdata = BytesIO()
-            fig.savefig(figdata, format='png')
+            fig.savefig(figdata, format='png',bbox_extra_artists=(lgd,),bbox_inches='tight')
             image_base64 = base64.b64encode(figdata.getvalue()).decode('utf-8').replace('\n', '')
             figdata.close()
 
             print("Content-type: text/html\n")
-            print('''"data:image/png;base64, %s"''' %(image_base64))
+            print("data:image/png;base64, %s" %(image_base64))
 
 else:
     # no form data, just print an empty http header

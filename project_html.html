@@ -41,8 +41,9 @@
     </head>
     <body>
         <!-- Page Title -->
-        <h2> Taxonomic heatmap - uses AJAX </h2>
-        <h3> View heatmap of taxonomic type selected using AJAX.</h3>
+        <h2> Taxonomic heatmap </h2>
+        <h3> <a href="https://bioed.bu.edu/students_20/mkouzmin/HelpPage.html">Help</a></h3>
+        <h3> View heatmap of taxonomic type selected for mice by category</h3>
         <br/>
         <p>
         Select a Taxonomic rank
@@ -53,7 +54,7 @@
         <select id="visType">
             <option value="Heatmap">Heatmap</option>
             <option value="Stack Bar">Stack Bar</option>
-        </select>
+        </select><br />
         <label for="rank">Choose a rank:</label>
         <select id="rank">
             <option value="Species">Species</option>
@@ -62,27 +63,27 @@
             <option value="Order">Order</option>
             <option value="Class">Class</option>
             <option value="Phylum">Phylum</option>
-        </select>
+        </select><br />
         <label for="Type">Choose a mouse type:</label>
         <select id="Type">
             <option value="All">All</option>
             <option value="Pure">Pure</option>
             <option value="Mix">Mix</option>
-        </select>
+        </select><br />
         <label for="Status">Choose mouse disease status:</label>
         <select id="Status">
             <option value="All">All</option>
             <option value="AD">Alzheimer's Disease</option>
             <option value="Wild Type">Wild Type</option>
-        </select>
+        </select><br />
         <label for="Labels">Choose method for labeling mice:</label>
         <select id="Labels">
             <option value="Type">Mouse Types</option>
             <option value="ID">MouseIDs</option>
-        </select>
+        </select><br />
 
 
-        <input type="submit" id="submit" value="submit">
+        <input type="submit" id="submit" value="View">
         </form>
         
         <div id="imgcontainer" >
@@ -117,7 +118,7 @@
                         $("#imgcontainer").empty();
                         //append the img into the container
                         var im = document.createElement('img');
-                        im.src = response.trim();
+                        im.src = response;
                         $("#imgcontainer").append(im);
 
                     }
