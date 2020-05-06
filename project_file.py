@@ -104,7 +104,7 @@ if form:
             ax.set_ylim(0, pivot_df.shape[0])
             box = ax.get_position()
             ax.set_position([box.x0, box.y0, box.width * 0.6, box.height])
-            lgd = plt.legend(loc=6, bbox_to_anchor=(1, 0.5), fontsize='xx-small')
+            lgd = plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), fontsize='xx-small')
             fig = plot.get_figure()
             figdata = BytesIO()
             fig.savefig(figdata, format='png',bbox_extra_artists=(lgd,),bbox_inches='tight')
